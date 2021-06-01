@@ -14,12 +14,14 @@ ppl_p_cross=0.8
 ppl_p_mut=0.05
 ppl_m_nought=$(($fl_grid_size / 4))
 
+
+# 4x4: 11, 8x8: 53, 12x12: 114, 16x16: 203
 fl_size_si=114
 
 num_train_rollouts=$fl_size_si
 num_test_rollouts=$fl_size_si
 
-#c_eta=20
+c_eta=20
 #num_train_rollouts=$(python3 -c "import math; print(math.ceil($c_eta * $fl_size_si * $fl_slip_prob))")
 #tests_per_si=100
 #num_test_rollouts=$(($fl_size_si * $tests_per_si))

@@ -103,7 +103,7 @@ def _make_train_env(args):
     slip_prob = args.fl_slip_prob
     if slip_prob == 0:
         iod_strat = "frozen_no_repeat"
-    elif slip_prob > 0:
+    elif 0 < slip_prob < 1:
         iod_strat = "goal_dist"
     else:
         assert False
@@ -117,7 +117,7 @@ def _make_test_env(args):
     slip_prob = args.fl_slip_prob
     if slip_prob == 0:
         iod_strat = "frozen_no_repeat"
-    elif slip_prob > 0:
+    elif 0 < slip_prob < 1:
         iod_strat = "frozen_repeat"
     else:
         assert False
