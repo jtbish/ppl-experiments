@@ -26,6 +26,7 @@ def parse_args():
     parser.add_argument("--experiment-name", required=True)
     parser.add_argument("--fl-grid-size", type=int, required=True)
     parser.add_argument("--fl-slip-prob", type=float, required=True)
+    parser.add_argument("--fl-tl-mult", type=float, required=True)
     parser.add_argument("--ppl-num-gens", type=int, required=True)
     parser.add_argument("--ppl-seed", type=int, required=True)
     parser.add_argument("--ppl-pop-size", type=int, required=True)
@@ -72,17 +73,18 @@ def main(args):
               encoding,
               inference_strat,
               hyperparams_dict=ppl_hyperparams)
+    logging.info(f"default action: {inference_strat.default_action}")
+    logging.info(f"selectable actions: {ppl.selectable_actions}")
 
-    pop_history = {}
     init_pop = ppl.init()
-    pop_history[0] = init_pop
-    _log_pop_stats(0, init_pop, test_env, args)
+    gen_num = 0
+    _log_pop_stats(gen_num, init_pop, test_env, args)
+    _save_pop(save_path, init_pop, gen_num)
     for gen_num in range(1, args.ppl_num_gens + 1):
         pop = ppl.run_gen()
         _log_pop_stats(gen_num, pop, test_env, args)
-        pop_history[gen_num] = pop
+        _save_pop(save_path, pop, gen_num)
 
-    _save_data(save_path, pop_history)
     _save_python_env_info(save_path)
     _save_main_py_script(save_path)
 
@@ -104,12 +106,13 @@ def _make_train_env(args):
     if slip_prob == 0:
         iod_strat = "frozen_no_repeat"
     elif 0 < slip_prob < 1:
-        iod_strat = "goal_dist"
+        iod_strat = "frozen_plus_goal_dist"
     else:
         assert False
     return make_fl(grid_size=args.fl_grid_size,
                    slip_prob=slip_prob,
                    iod_strat=iod_strat,
+                   time_limit_mult=args.fl_tl_mult,
                    seed=_FL_SEED)
 
 
@@ -124,6 +127,7 @@ def _make_test_env(args):
     return make_fl(grid_size=args.fl_grid_size,
                    slip_prob=slip_prob,
                    iod_strat=iod_strat,
+                   time_limit_mult=args.fl_tl_mult,
                    seed=_FL_SEED)
 
 
@@ -143,10 +147,18 @@ def _log_pop_stats(gen_num, pop, test_env, args):
     fitnesses = [indiv.fitness for indiv in pop]
     min_ = np.min(fitnesses)
     mean = np.mean(fitnesses)
+    median = np.median(fitnesses)
     max_ = np.max(fitnesses)
-    logging.info(f"min, mean, max fitness in pop: {min_}, {mean}, {max_}")
+    logging.info(f"min, mean, median, max fitness in pop: {min_}, {mean}, "
+                 f"{median}, {max_}")
+
+    logging.info("Indiv size distribution:")
+    indiv_sizes = [len(indiv) for indiv in pop]
+    for size in range(args.ppl_indiv_size_min, args.ppl_indiv_size_max + 1):
+        logging.info(f"{size}: {indiv_sizes.count(size)}")
 
     non_elites = [indiv for indiv in pop if not indiv.is_elite]
+    logging.info(f"num non elites: {len(non_elites)}")
     total_time_steps_used = sum(
         [indiv.time_steps_used for indiv in non_elites])
     logging.info(f"total time steps used: {total_time_steps_used}")
@@ -158,10 +170,19 @@ def _log_pop_stats(gen_num, pop, test_env, args):
         logging.info("best failed actual perf assessment")
     logging.info(f"actual best perf: {res.perf}")
 
+    # generality info
+    mean_generalities = []
+    for indiv in pop:
+        mean_generalities.append(
+            np.mean([clfr.generality for clfr in indiv.classifiers]))
+    logging.info(f"mean of mean generalities: {np.mean(mean_generalities)}")
+    logging.info(
+        f"median of mean generalities: {np.median(mean_generalities)}")
 
-def _save_data(save_path, pop_history):
-    with open(save_path / "pop_history.pkl", "wb") as fp:
-        pickle.dump(pop_history, fp)
+
+def _save_pop(save_path, pop, gen_num):
+    with open(save_path / f"pop_gen_{gen_num}.pkl", "wb") as fp:
+        pickle.dump(pop, fp)
 
 
 def _save_python_env_info(save_path):
