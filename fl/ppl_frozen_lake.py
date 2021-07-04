@@ -30,8 +30,7 @@ def parse_args():
     parser.add_argument("--ppl-num-gens", type=int, required=True)
     parser.add_argument("--ppl-seed", type=int, required=True)
     parser.add_argument("--ppl-pop-size", type=int, required=True)
-    parser.add_argument("--ppl-indiv-size-min", type=int, required=True)
-    parser.add_argument("--ppl-indiv-size-max", type=int, required=True)
+    parser.add_argument("--ppl-indiv-size", type=int, required=True)
     parser.add_argument("--ppl-inference-strat",
                         choices=["sp", "dl"],
                         required=True)
@@ -57,8 +56,7 @@ def main(args):
     ppl_hyperparams = {
         "seed": args.ppl_seed,
         "pop_size": args.ppl_pop_size,
-        "indiv_size_min": args.ppl_indiv_size_min,
-        "indiv_size_max": args.ppl_indiv_size_max,
+        "indiv_size": args.ppl_indiv_size,
         "num_elites": args.ppl_num_elites,
         "tourn_size": args.ppl_tourn_size,
         "p_cross": args.ppl_p_cross,
@@ -151,11 +149,6 @@ def _log_pop_stats(gen_num, pop, test_env, args):
     max_ = np.max(fitnesses)
     logging.info(f"min, mean, median, max fitness in pop: {min_}, {mean}, "
                  f"{median}, {max_}")
-
-    logging.info("Indiv size distribution:")
-    indiv_sizes = [len(indiv) for indiv in pop]
-    for size in range(args.ppl_indiv_size_min, args.ppl_indiv_size_max + 1):
-        logging.info(f"{size}: {indiv_sizes.count(size)}")
 
     non_elites = [indiv for indiv in pop if not indiv.is_elite]
     logging.info(f"num non elites: {len(non_elites)}")

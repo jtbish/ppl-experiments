@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH --partition=coursework
-#SBATCH --cpus-per-task=2
+#SBATCH --partition=batch
+#SBATCH --cpus-per-task=4
 
 source ~/virtualenvs/ppl/bin/activate
 python3 ppl_frozen_lake.py \
@@ -11,17 +11,16 @@ python3 ppl_frozen_lake.py \
     --ppl-num-gens="$4" \
     --ppl-seed="$5" \
     --ppl-pop-size="$6" \
-    --ppl-indiv-size-min="$7" \
-    --ppl-indiv-size-max="$8" \
-    --ppl-inference-strat="$9" \
-    --ppl-default-action="${10}" \
-    --ppl-num-elites="${11}" \
-    --ppl-tourn-size="${12}" \
-    --ppl-p-cross="${13}" \
-    --ppl-p-mut="${14}" \
-    --ppl-m-nought="${15}" \
-    --num-train-rollouts="${16}" \
-    --num-test-rollouts="${17}" \
-    --gamma="${18}"
+    --ppl-indiv-size="$7" \
+    --ppl-inference-strat="$8" \
+    --ppl-default-action="$9" \
+    --ppl-num-elites="${10}" \
+    --ppl-tourn-size="${11}" \
+    --ppl-p-cross="${12}" \
+    --ppl-p-mut="${13}" \
+    --ppl-m-nought="${14}" \
+    --num-train-rollouts="${15}" \
+    --num-test-rollouts="${16}" \
+    --gamma="${17}"
 mv "slurm-${SLURM_JOB_ID}.out" "${SLURM_JOB_ID}/"
 #mv "${SLURM_JOB_ID}.prof" "${SLURM_JOB_ID}/"
