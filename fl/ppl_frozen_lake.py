@@ -26,7 +26,6 @@ def parse_args():
     parser.add_argument("--experiment-name", required=True)
     parser.add_argument("--fl-grid-size", type=int, required=True)
     parser.add_argument("--fl-slip-prob", type=float, required=True)
-    parser.add_argument("--fl-tl-mult", type=float, required=True)
     parser.add_argument("--ppl-num-gens", type=int, required=True)
     parser.add_argument("--ppl-seed", type=int, required=True)
     parser.add_argument("--ppl-pop-size", type=int, required=True)
@@ -38,8 +37,8 @@ def parse_args():
     parser.add_argument("--ppl-num-elites", type=int, required=True)
     parser.add_argument("--ppl-tourn-size", type=int, required=True)
     parser.add_argument("--ppl-p-cross", type=float, required=True)
+    parser.add_argument("--ppl-p-cross-swap", type=float, required=True)
     parser.add_argument("--ppl-p-mut", type=float, required=True)
-    parser.add_argument("--ppl-m-nought", type=int, required=True)
     parser.add_argument("--num-train-rollouts", type=int, required=True)
     parser.add_argument("--num-test-rollouts", type=int, required=True)
     parser.add_argument("--gamma", type=float, required=True)
@@ -60,8 +59,8 @@ def main(args):
         "num_elites": args.ppl_num_elites,
         "tourn_size": args.ppl_tourn_size,
         "p_cross": args.ppl_p_cross,
+        "p_cross_swap": args.ppl_p_cross_swap,
         "p_mut": args.ppl_p_mut,
-        "m_nought": args.ppl_m_nought,
         "num_rollouts": args.num_train_rollouts,
         "gamma": args.gamma
     }
@@ -74,15 +73,17 @@ def main(args):
     logging.info(f"default action: {inference_strat.default_action}")
     logging.info(f"selectable actions: {ppl.selectable_actions}")
 
+    best_perf_history = {}
     init_pop = ppl.init()
     gen_num = 0
-    _log_pop_stats(gen_num, init_pop, test_env, args)
+    _calc_pop_stats(gen_num, init_pop, test_env, args, best_perf_history)
     _save_pop(save_path, init_pop, gen_num)
     for gen_num in range(1, args.ppl_num_gens + 1):
         pop = ppl.run_gen()
-        _log_pop_stats(gen_num, pop, test_env, args)
+        _calc_pop_stats(gen_num, pop, test_env, args, best_perf_history)
         _save_pop(save_path, pop, gen_num)
 
+    _save_history(save_path, best_perf_history)
     _save_python_env_info(save_path)
     _save_main_py_script(save_path)
 
@@ -104,13 +105,13 @@ def _make_train_env(args):
     if slip_prob == 0:
         iod_strat = "frozen_no_repeat"
     elif 0 < slip_prob < 1:
+        # TODO change
         iod_strat = "frozen_plus_goal_dist"
     else:
         assert False
     return make_fl(grid_size=args.fl_grid_size,
                    slip_prob=slip_prob,
                    iod_strat=iod_strat,
-                   time_limit_mult=args.fl_tl_mult,
                    seed=_FL_SEED)
 
 
@@ -125,7 +126,6 @@ def _make_test_env(args):
     return make_fl(grid_size=args.fl_grid_size,
                    slip_prob=slip_prob,
                    iod_strat=iod_strat,
-                   time_limit_mult=args.fl_tl_mult,
                    seed=_FL_SEED)
 
 
@@ -140,7 +140,7 @@ def _make_inference_strat(args, env):
                default_action=args.ppl_default_action)
 
 
-def _log_pop_stats(gen_num, pop, test_env, args):
+def _calc_pop_stats(gen_num, pop, test_env, args, best_perf_history):
     logging.info(f"gen num {gen_num}")
     fitnesses = [indiv.fitness for indiv in pop]
     min_ = np.min(fitnesses)
@@ -162,20 +162,17 @@ def _log_pop_stats(gen_num, pop, test_env, args):
     if res.failed:
         logging.info("best failed actual perf assessment")
     logging.info(f"actual best perf: {res.perf}")
-
-    # generality info
-    mean_generalities = []
-    for indiv in pop:
-        mean_generalities.append(
-            np.mean([clfr.generality for clfr in indiv.classifiers]))
-    logging.info(f"mean of mean generalities: {np.mean(mean_generalities)}")
-    logging.info(
-        f"median of mean generalities: {np.median(mean_generalities)}")
+    best_perf_history[gen_num] = res
 
 
 def _save_pop(save_path, pop, gen_num):
     with open(save_path / f"pop_gen_{gen_num}.pkl", "wb") as fp:
         pickle.dump(pop, fp)
+
+
+def _save_history(save_path, best_perf_history):
+    with open(save_path / "best_perf_history.pkl", "wb") as fp:
+        pickle.dump(best_perf_history, fp)
 
 
 def _save_python_env_info(save_path):
