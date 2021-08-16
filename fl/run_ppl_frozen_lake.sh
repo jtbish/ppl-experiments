@@ -2,7 +2,7 @@
 # variable params
 fl_grid_size=4
 fl_slip_prob=0
-ppl_pop_size_mult=1.5
+ppl_pop_size_mult=1
 
 # static / calced params
 # si sizes:
@@ -26,7 +26,7 @@ samples_per_si_test=10
 ppl_num_gens=100
 alleles_per_rule=5
 num_search_dims=$(($ppl_indiv_size * $alleles_per_rule))
-ppl_pop_size=$(python3 -c "import math; print(math.ceil($ppl_pop_size_mult * $num_search_dims))")
+ppl_pop_size=$(($ppl_pop_size_mult * $num_search_dims))
 ppl_inference_strat="dl"
 # 0: Left, 1: Down, 2: Right, 3: Up, -1: NULL
 ppl_default_action=-1
@@ -41,7 +41,7 @@ ppl_p_cross_swap=0.5
 ppl_p_mut=0.025
 gamma=0.95
 
-for ppl_seed in {0..29}; do
+for ppl_seed in {0..0}; do
    echo sbatch ppl_frozen_lake.sh \
         "$fl_grid_size" \
         "$fl_slip_prob" \
