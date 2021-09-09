@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --partition=coursework
+#SBATCH --partition=batch
 #SBATCH --cpus-per-task=4
 
 source ~/virtualenvs/ppl/bin/activate
@@ -10,16 +10,12 @@ python3 ppl_frozen_lake.py \
     --ppl-num-gens="$3" \
     --ppl-seed="$4" \
     --ppl-pop-size="$5" \
-    --ppl-indiv-size="$6" \
-    --ppl-inference-strat="$7" \
-    --ppl-default-action="$8" \
-    --ppl-num-elites="$9" \
-    --ppl-tourn-size="${10}" \
-    --ppl-p-cross="${11}" \
-    --ppl-p-cross-swap="${12}" \
-    --ppl-p-mut="${13}" \
-    --num-train-rollouts="${14}" \
-    --num-test-rollouts="${15}" \
-    --gamma="${16}"
+    --ppl-num-elites="$6" \
+    --ppl-indiv-size="$7" \
+    --ppl-tourn-size="$8" \
+    --ppl-p-cross="$9" \
+    --ppl-p-cross-swap="${10}" \
+    --ppl-p-mut="${11}" \
+    --gamma="${12}"
 mv "slurm-${SLURM_JOB_ID}.out" "${SLURM_JOB_ID}/"
 #mv "${SLURM_JOB_ID}.prof" "${SLURM_JOB_ID}/"

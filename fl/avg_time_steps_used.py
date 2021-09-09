@@ -7,9 +7,9 @@ import numpy as np
 def main():
     base_dir = sys.argv[1]
     num_gens = int(sys.argv[2])
-    experiment_dirs = glob.glob(f"{base_dir}/63*")
+    experiment_dirs = glob.glob(f"{base_dir}/64*")
     num_experiments = len(experiment_dirs)
-    #assert num_experiments == 30
+    assert num_experiments == 30
 
     # rows are experiment dirs, cols are gens (+1 on gens b.c. of gen 0)
     time_steps_mat = np.full((num_experiments, num_gens + 1), np.nan)

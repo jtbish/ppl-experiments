@@ -1,6 +1,6 @@
 base_dir=$1
 echo $base_dir
-experiment_dirs=( $base_dir/63* )
+experiment_dirs=( $base_dir/64* )
 
 for experiment_dir in "${experiment_dirs[@]}"; do
     echo $experiment_dir
