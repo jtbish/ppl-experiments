@@ -169,7 +169,7 @@ def _save_history(save_path, best_test_perf_history):
 
 
 def _save_python_env_info(save_path):
-    result = subprocess.run(["pip3", "freeze"],
+    result = subprocess.run(["pip3", "freeze", "-vvv"],
                             stdout=subprocess.PIPE,
                             stderr=subprocess.DEVNULL)
     return_val = result.stdout.decode("utf-8")

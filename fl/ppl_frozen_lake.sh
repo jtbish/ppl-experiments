@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --partition=coursework
+#SBATCH --partition=batch
 #SBATCH --cpus-per-task=4
 
 source ~/virtualenvs/ppl/bin/activate
